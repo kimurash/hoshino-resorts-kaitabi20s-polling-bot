@@ -30,23 +30,23 @@ def main():
             break
 
     if not is_candidate_plan_found:
-        notifier.notify("予約可能なページが見つかりませんでした")
+        notifier.notify("予約可能なプランが見つかりませんでした")
         return
 
     available_plan = webdriver.find_available_plan()
 
     if available_plan is not None:
-        notifier.notify(f"予約可能なページが見つかりました: {available_plan}")
+        notifier.notify(f"予約可能なプランが見つかりました: {available_plan}")
         return
 
     webdriver.click_next_month_button()
     available_plan = webdriver.find_available_plan()
 
     if available_plan is not None:
-        notifier.notify(f"予約可能なページが見つかりました: {available_plan}")
+        notifier.notify(f"予約可能なプランが見つかりました: {available_plan}")
         return
 
-    notifier.notify("予約可能なページが見つかりませんでした")
+    notifier.notify("予約可能なプランが見つかりませんでした")
 
 
 if __name__ == "__main__":
