@@ -16,7 +16,7 @@ def main():
         plan = ReservationPlan(
             check_in=check_in_date,
             stay=1,
-            adults=1,
+            adults=2,
             children_7_11=0,
             children_4_6=0,
             children_0_6=0,
@@ -25,7 +25,6 @@ def main():
         webdriver.visit(plan)
 
         if not webdriver.is_alert_dialog_displayed():
-            print(check_in_date)
             is_candidate_plan_found = True
             break
 

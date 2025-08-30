@@ -136,15 +136,26 @@ class Kaitabi20sIzumoWebDriver:
         """
         次の月へ進むボタンをクリックする
         """
-        calendar_before_click = self.driver.find_element(By.CSS_SELECTOR, ".c-calendar")
+        # 次の月ボタンが存在するかチェック
+        next_button = self.driver.find_element(By.CSS_SELECTOR, ".calendar-set__pagination--next")
 
+        # ボタンが表示されているかチェック
+        if not next_button.is_displayed():
+            return False
+
+        # ボタンがクリック可能になるまで待機
         wait = WebDriverWait(self.driver, 10)
-        next_button = wait.until(
+        clickable_button = wait.until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, ".calendar-set__pagination--next"))
         )
-        next_button.click()
 
-        wait.until(EC.staleness_of(calendar_before_click))
+        # ボタンをクリック
+        clickable_button.click()
+
+        # ページの読み込み完了を待機
+        wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
+
+        return True
 
     def close(self):
         """
