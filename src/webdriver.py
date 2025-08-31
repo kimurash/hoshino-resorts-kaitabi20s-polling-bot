@@ -19,6 +19,8 @@ class Kaitabi20sIzumoWebDriver:
     # 界 出雲の予約ページ
     BASE_URL = "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"
 
+    VISIT_MAX_RETRY = 3
+
     FULL_SYMBOL = "×"
     CLOSED_SYMBOL = "ー"
 
@@ -40,8 +42,20 @@ class Kaitabi20sIzumoWebDriver:
         if headless:
             options.add_argument("--headless")
 
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-plugins")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+        )
+
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
+
+        driver.set_page_load_timeout(10)
+        driver.implicitly_wait(10)
 
         return driver
 
@@ -53,9 +67,17 @@ class Kaitabi20sIzumoWebDriver:
             plan (ReservationPlan): 予約プラン
         """
         url = f"{self.BASE_URL}?{plan.to_query_string()}"
-        self.driver.get(url)
 
-        time.sleep(2)
+        for attempt in range(self.VISIT_MAX_RETRY):
+            try:
+                self.driver.get(url) if attempt == 0 else self.driver.refresh()
+                time.sleep(2)
+                break
+            except Exception as exception:
+                if self.VISIT_MAX_RETRY - 1 <= attempt:
+                    raise exception
+
+                time.sleep(2 ** (attempt + 1))
 
     def is_alert_dialog_displayed(self):
         """
@@ -67,14 +89,14 @@ class Kaitabi20sIzumoWebDriver:
         alert_dialog = self.driver.find_elements(By.CSS_SELECTOR, ".v-stack-dialog__content")
         return len(alert_dialog) > 0
 
-    def find_available_plan(self) -> date | None:
+    def find_available_check_in_date(self) -> date | None:
         """
-        予約可能なプランを返す
+        予約可能なチェックイン日を返す
 
         Returns:
-            date | None: 予約可能なプラン. 予約可能なプランが見つからない場合は None を返す.
+            date | None: 予約可能なチェックイン日. 見つからない場合は None を返す.
         """
-        available_plan = None
+        available_check_in_date = None
 
         calendar_blocks = self.driver.find_elements(By.CSS_SELECTOR, ".c-calendar")
 
@@ -101,7 +123,7 @@ class Kaitabi20sIzumoWebDriver:
                             continue
 
                         day = int(calendar_cell.find_element(By.CSS_SELECTOR, ".date").text.strip())
-                        available_plan = date(year, month, day)
+                        available_check_in_date = date(year, month, day)
                         break
 
                     except NoSuchElementException:
@@ -110,7 +132,7 @@ class Kaitabi20sIzumoWebDriver:
             except NoSuchElementException:
                 continue
 
-        return available_plan
+        return available_check_in_date
 
     def is_calendar_cell_available(self, calendar_cell: WebElement) -> bool:
         """
@@ -136,8 +158,14 @@ class Kaitabi20sIzumoWebDriver:
         """
         次の月へ進むボタンをクリックする
         """
-        # 次の月ボタンが存在するかチェック
-        next_button = self.driver.find_element(By.CSS_SELECTOR, ".calendar-set__pagination--next")
+        # 次の月へ進むボタンが存在するかチェック
+        try:
+            next_button = self.driver.find_element(
+                By.CSS_SELECTOR,
+                ".calendar-set__pagination--next",
+            )
+        except NoSuchElementException:
+            return False
 
         # ボタンが表示されているかチェック
         if not next_button.is_displayed():
