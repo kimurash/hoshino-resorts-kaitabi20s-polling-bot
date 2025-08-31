@@ -8,8 +8,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from models.plan import ReservationPlan
@@ -18,9 +16,7 @@ from models.plan import ReservationPlan
 class Kaitabi20sIzumoWebDriver:
     # 界 出雲の予約ページ
     BASE_URL = "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"
-
     VISIT_MAX_RETRY = 3
-
     FULL_SYMBOL = "×"
     CLOSED_SYMBOL = "ー"
 
@@ -55,7 +51,7 @@ class Kaitabi20sIzumoWebDriver:
         driver = webdriver.Chrome(service=service, options=options)
 
         driver.set_page_load_timeout(10)
-        driver.implicitly_wait(10)
+        driver.implicitly_wait(5)
 
         return driver
 
@@ -70,12 +66,17 @@ class Kaitabi20sIzumoWebDriver:
 
         for attempt in range(self.VISIT_MAX_RETRY):
             try:
-                self.driver.get(url) if attempt == 0 else self.driver.refresh()
+                if attempt == 0:
+                    self.driver.get(url)
+                else:
+                    self.driver.refresh()
+
                 time.sleep(2)
                 break
-            except Exception as exception:
+
+            except Exception as e:
                 if self.VISIT_MAX_RETRY - 1 <= attempt:
-                    raise exception
+                    raise e
 
                 time.sleep(2 ** (attempt + 1))
 
@@ -112,7 +113,7 @@ class Kaitabi20sIzumoWebDriver:
 
                 calendar_cells = calendar_block.find_elements(
                     By.CSS_SELECTOR,
-                    ".content > div:not([class*='full']):not([class='null-card'])",
+                    ".content > div:not([class='full']):not([class='null-card']):not([class='weekdays-cell'])",
                 )
 
                 for calendar_cell in calendar_cells:
@@ -158,25 +159,27 @@ class Kaitabi20sIzumoWebDriver:
         """
         次の月へ進むボタンをクリックする
         """
-        try:
-            next_button = self.driver.find_element(
-                By.CSS_SELECTOR,
-                ".calendar-set__pagination--next",
-            )
-        except NoSuchElementException:
+        selectors = [
+            "button.calendar-set__pagination--next",
+            "button.calendar-set__pagination",
+        ]
+
+        next_button = None
+        for selector in selectors:
+            try:
+                next_button = self.driver.find_element(By.CSS_SELECTOR, selector)
+                break
+            except NoSuchElementException:
+                continue
+
+        if next_button is None:
             return False
 
         if not next_button.is_displayed():
             return False
 
-        wait = WebDriverWait(self.driver, 10)
-        clickable_button = wait.until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, ".calendar-set__pagination--next"))
-        )
-
-        clickable_button.click()
-
-        wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
+        next_button.click()
+        time.sleep(2)
 
         return True
 
