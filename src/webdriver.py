@@ -14,11 +14,12 @@ from models.plan import ReservationPlan
 
 
 class Kaitabi20sIzumoWebDriver:
-    # 界 出雲の予約ページ
-    BASE_URL = "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"
+    BASE_URL = (
+        "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"  # 界 出雲の予約ページ
+    )
     VISIT_MAX_RETRY = 3
-    FULL_SYMBOL = "×"
-    CLOSED_SYMBOL = "ー"
+    FULL_SYMBOL = "×"  # 満席
+    CLOSED_SYMBOL = "ー"  # 閉館
 
     def __init__(self, headless: bool = False):
         self.driver = self.create_driver(headless)
