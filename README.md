@@ -22,7 +22,7 @@ cp src/.env.sample src/.env
 | 環境変数名                 | 値                                       | 
 | -------------------------- | ---------------------------------------- | 
 | LINE_USER_ID               | 通知先のユーザーID                       | 
-| LINE_CHANNEL_ACCESS_TOKEN= | メッセージを送信するために必要な機密情報 | 
+| LINE_CHANNEL_ACCESS_TOKEN  | メッセージを送信するために必要な機密情報 | 
 
 `LINE_CHANNEL_ACCESS_TOKEN` の値は [shunsei](https://github.com/kimurash) からもらってください。
 
