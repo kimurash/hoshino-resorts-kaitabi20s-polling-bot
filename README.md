@@ -23,6 +23,7 @@ cp src/.env.sample src/.env
 | -------------------------- | ---------------------------------------- | 
 | LINE_USER_ID               | 通知先のユーザーID                       | 
 | LINE_CHANNEL_ACCESS_TOKEN  | メッセージを送信するために必要な機密情報 | 
+| SLACK_WEBHOOK_URL          | Slack に通知するための Webhook URL     | 
 
 `LINE_CHANNEL_ACCESS_TOKEN` の値は [shunsei](https://github.com/kimurash) からもらってください。
 
