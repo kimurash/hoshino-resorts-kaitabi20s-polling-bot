@@ -2,13 +2,13 @@ from datetime import date, timedelta
 
 from logger import configure_logger, get_logger
 from models.plan import ReservationPlan
-from notifier import LINENotifier
+from notifiers.notifier import Notifier
+from notifiers.slack import SlackNotifier
 from webdriver import Kaitabi20sIzumoWebDriver
 
 
-def main():
+def main(notifier: Notifier, notify_when_unavailable: bool):
     configure_logger()
-    notifier = LINENotifier()
 
     try:
         webdriver = Kaitabi20sIzumoWebDriver(headless=True)
@@ -33,7 +33,8 @@ def main():
                 break
 
         if not is_candidate_plan_found:
-            notifier.notify("予約可能なプランが見つかりませんでした")
+            if notify_when_unavailable:
+                notifier.notify("予約可能なプランが見つかりませんでした")
             return
 
         available_check_in_date = webdriver.find_available_check_in_date()
@@ -53,7 +54,8 @@ def main():
             )
             return
 
-        notifier.notify("予約可能なプランが見つかりませんでした")
+        if notify_when_unavailable:
+            notifier.notify("予約可能なプランが見つかりませんでした")
 
     except Exception as e:
         notifier.notify("予約チェック中にエラーが発生しました")
@@ -67,4 +69,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    notifier = SlackNotifier()
+    main(notifier, notify_when_unavailable=False)
