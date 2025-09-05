@@ -1,14 +1,15 @@
 import os
 
 import requests
-from dotenv import load_dotenv
+
+from notifiers.notifier import Notifier
 
 
-class LINENotifier:
+class LINENotifier(Notifier):
     PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push"
 
     def __init__(self):
-        load_dotenv()
+        super().__init__()
 
         self.user_id = os.getenv("LINE_USER_ID")
         self.channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
