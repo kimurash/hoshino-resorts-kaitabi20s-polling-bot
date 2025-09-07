@@ -17,7 +17,11 @@ class Kaitabi20sIzumoWebDriver:
     BASE_URL = (
         "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"  # 界 出雲の予約ページ
     )
+
+    PAGE_LOAD_TIMEOUT = 30
+    IMPLICITLY_WAIT = 30
     VISIT_MAX_RETRY = 3
+
     FULL_SYMBOL = "×"  # 満席
     CLOSED_SYMBOL = "ー"  # 閉館
 
@@ -51,8 +55,8 @@ class Kaitabi20sIzumoWebDriver:
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
-        driver.set_page_load_timeout(10)
-        driver.implicitly_wait(5)
+        driver.set_page_load_timeout(self.PAGE_LOAD_TIMEOUT)
+        driver.implicitly_wait(self.IMPLICITLY_WAIT)
 
         return driver
 
