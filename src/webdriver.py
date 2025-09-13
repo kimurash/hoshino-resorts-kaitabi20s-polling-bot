@@ -22,6 +22,7 @@ class Kaitabi20sIzumoWebDriver:
     IMPLICITLY_WAIT = 30
     VISIT_MAX_RETRY = 3
 
+    FEW_REMAINING_SYMBOL = "▲"  # 残りわずか
     FULL_SYMBOL = "×"  # 満席
     CLOSED_SYMBOL = "ー"  # 閉館
 
@@ -46,11 +47,12 @@ class Kaitabi20sIzumoWebDriver:
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-plugins")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
         options.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
         )
+
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
 
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
@@ -150,13 +152,23 @@ class Kaitabi20sIzumoWebDriver:
         Returns:
             bool: 予約可能かどうか
         """
-        symbol = calendar_cell.find_element(By.CSS_SELECTOR, ".calender-cell > span").text.strip()
+        # 空きありの場合をチェック
+        try:
+            # fmt: off
+            circle_element = calendar_cell.find_element(By.CSS_SELECTOR, ".circle")  # FIXME: クラス名は予想
+            # fmt: on
+            if circle_element:
+                return True
+        except NoSuchElementException:
+            pass
 
-        if symbol == self.FULL_SYMBOL:
-            return False
-
-        if symbol == self.CLOSED_SYMBOL:
-            return False
+        # 残りわずかの場合をチェック
+        try:
+            triangle_element = calendar_cell.find_element(By.CSS_SELECTOR, ".triangle")
+            if triangle_element:
+                return True
+        except NoSuchElementException:
+            pass
 
         return True
 
