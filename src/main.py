@@ -1,19 +1,25 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
 from logger import configure_logger, get_logger
+from models.notification_history import NotificationHistory
+from models.notification_log import NotificationLog
 from models.plan import ReservationPlan
 from notifiers.factory import NotifierFactory
-from notifiers.interfaces.notifier import Notifier
 from repositories.factory import RepositoryFactory
-from repositories.interfaces.notification_repository import NotificationRepository
 from webdriver import Kaitabi20sIzumoWebDriver
+
+notification_history_file_path = Path("notification.json")
 
 
 def main(notify_when_unavailable: bool):
     configure_logger()
 
     notifier = NotifierFactory.create_notifier()
-    notification_repository = RepositoryFactory.create_notification_repository()
+
+    notification_repository = RepositoryFactory.create_notification_history_repository()
+    notification_history = notification_repository.load(notification_history_file_path)
+    notification_history.remove_expired_logs()
 
     try:
         webdriver = Kaitabi20sIzumoWebDriver(headless=True)
@@ -26,14 +32,16 @@ def main(notify_when_unavailable: bool):
 
             return
 
-        found_available_plan = find_available_plan(webdriver, notifier, notification_repository)
-        if found_available_plan:
+        available_dates = find_available_dates(webdriver, notification_history)
+        if available_dates:
+            notifier.notify_available_dates(available_dates)
             return
 
         webdriver.click_next_month_button()
 
-        found_available_plan = find_available_plan(webdriver, notifier, notification_repository)
-        if found_available_plan:
+        available_dates = find_available_dates(webdriver, notification_history)
+        if available_dates:
+            notifier.notify_available_dates(available_dates)
             return
 
         if notify_when_unavailable:
@@ -49,10 +57,21 @@ def main(notify_when_unavailable: bool):
     finally:
         webdriver.close()
 
+        notification_repository.save(
+            notification_history_file_path,
+            notification_history,
+        )
+
 
 def find_candidate_plan(webdriver: Kaitabi20sIzumoWebDriver) -> bool:
     """
-    ダイアログが表示されないプランを検索する
+    ダイアログが表示されないプランを探す
+
+    Args:
+        webdriver: Kaitabi20sIzumoWebDriver
+
+    Returns:
+        bool: ダイアログが表示されないプランが見つかったかどうか
     """
     for i in range(1, 31):  # 今日から30日後まで調べる
         check_in_date = date.today() + timedelta(days=i)
@@ -73,21 +92,19 @@ def find_candidate_plan(webdriver: Kaitabi20sIzumoWebDriver) -> bool:
     return False
 
 
-def find_available_plan(
+def find_available_dates(
     webdriver: Kaitabi20sIzumoWebDriver,
-    notifier: Notifier,
-    notification_repository: NotificationRepository,
-) -> bool:
+    notification_history: NotificationHistory,
+) -> list[date]:
     """
     現在の画面から予約可能なプランを検索する
 
     Args:
         webdriver: Kaitabi20sIzumoWebDriver
-        notifier: Notifier
-        notification_repository: 通知履歴リポジトリ
+        notification_history: NotificationHistory
 
     Returns:
-        bool: 予約可能なプランが見つかったかどうか
+        list[date]: 予約可能な日付のリスト
     """
     available_check_in_dates = webdriver.find_available_check_in_dates()
 
@@ -96,18 +113,18 @@ def find_available_plan(
 
         # 未通知の日付を絞り込む
         for available_date in available_check_in_dates:
-            if not notification_repository.is_notified(available_date):
+            if not notification_history.is_notified(available_date):
                 yet_notified_dates.append(available_date)
-                notification_repository.mark_as_notified(available_date)
 
-        # 未通知の日付があれば通知する
-        if yet_notified_dates:
-            notifier.notify_available_dates(yet_notified_dates)
-            notification_repository.save()
+                notification_log = NotificationLog(
+                    date=available_date,
+                    notified_at=datetime.now(),
+                )
+                notification_history.append(notification_log)
 
-            return True
+        return yet_notified_dates
 
-    return False
+    return []
 
 
 if __name__ == "__main__":
