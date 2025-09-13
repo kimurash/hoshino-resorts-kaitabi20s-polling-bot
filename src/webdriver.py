@@ -18,8 +18,8 @@ class Kaitabi20sIzumoWebDriver:
         "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"  # 界 出雲の予約ページ
     )
 
-    PAGE_LOAD_TIMEOUT = 30
-    IMPLICITLY_WAIT = 30
+    PAGE_LOAD_TIMEOUT = 20
+    IMPLICITLY_WAIT = 20
     VISIT_MAX_RETRY = 3
 
     FEW_REMAINING_SYMBOL = "▲"  # 残りわずか
