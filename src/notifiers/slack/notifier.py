@@ -33,11 +33,11 @@ class SlackNotifier(Notifier):
         if not available_dates:
             return
 
-        dates_text = []
+        lines = ["予約可能なプランが見つかりました:"]
         for available_date in available_dates:
-            dates_text.append(f"• {available_date.strftime('%Y/%m/%d')}")
+            lines.append(f"• {available_date.strftime('%Y/%m/%d')}")
 
-        block_text = "\n".join(dates_text)
+        block_text = "\n".join(lines)
 
         requests.post(
             self.webhook_url,
@@ -45,7 +45,14 @@ class SlackNotifier(Notifier):
                 "Content-Type": "application/json",
             },
             json={
-                "text": "予約可能なプランが見つかりました:",
-                "blocks": block_text,
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": block_text,
+                        },
+                    },
+                ],
             },
         )
