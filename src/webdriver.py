@@ -156,22 +156,20 @@ class Kaitabi20sIzumoWebDriver:
         # 空きありの場合をチェック
         try:
             # fmt: off
-            circle_element = calendar_cell.find_element(By.CSS_SELECTOR, ".circle")  # FIXME: クラス名は予想
+            calendar_cell.find_element(By.CSS_SELECTOR, ".circle")  # FIXME: クラス名は予想
             # fmt: on
-            if circle_element:
-                return True
+            return True
         except NoSuchElementException:
             pass
 
         # 残りわずかの場合をチェック
         try:
-            triangle_element = calendar_cell.find_element(By.CSS_SELECTOR, ".triangle")
-            if triangle_element:
-                return True
+            calendar_cell.find_element(By.CSS_SELECTOR, ".triangle")
+            return True
         except NoSuchElementException:
             pass
 
-        return True
+        return False
 
     def click_next_month_button(self):
         """
