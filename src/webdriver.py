@@ -98,14 +98,14 @@ class Kaitabi20sIzumoWebDriver:
         alert_dialog = self.driver.find_elements(By.CSS_SELECTOR, ".v-stack-dialog__content")
         return len(alert_dialog) > 0
 
-    def find_available_check_in_date(self) -> date | None:
+    def find_available_check_in_dates(self) -> list[date]:
         """
-        予約可能なチェックイン日を返す
+        予約可能な全てのチェックイン日を返す
 
         Returns:
-            date | None: 予約可能なチェックイン日. 見つからない場合は None を返す.
+            list[date]: 予約可能なチェックイン日のリスト. 見つからない場合は空のリストを返す.
         """
-        available_check_in_date = None
+        available_dates = []
 
         calendar_blocks = self.driver.find_elements(By.CSS_SELECTOR, ".c-calendar")
 
@@ -119,29 +119,41 @@ class Kaitabi20sIzumoWebDriver:
 
                 year, month = int(match.group(1)), int(match.group(2))
 
-                calendar_cells = calendar_block.find_elements(
-                    By.CSS_SELECTOR,
-                    ".content > div:not([class='full']):not([class='null-card']):not([class='weekdays-cell'])",
-                )
+                available_days = self.find_available_days(calendar_block)
 
-                for calendar_cell in calendar_cells:
-                    try:
-                        is_available = self.is_calendar_cell_available(calendar_cell)
-
-                        if not is_available:
-                            continue
-
-                        day = int(calendar_cell.find_element(By.CSS_SELECTOR, ".date").text.strip())
-                        available_check_in_date = date(year, month, day)
-                        break
-
-                    except NoSuchElementException:
-                        continue
+                for day in available_days:
+                    available_dates.append(date(year, month, day))
 
             except NoSuchElementException:
                 continue
 
-        return available_check_in_date
+        return available_dates
+
+    def find_available_days(self, calendar_block: WebElement) -> list[int]:
+        """
+        カレンダーのブロックから予約可能な日付を返す
+        """
+        available_days = []
+
+        calendar_cells = calendar_block.find_elements(
+            By.CSS_SELECTOR,
+            ".content > div:not([class='full']):not([class='null-card']):not([class='weekdays-cell'])",
+        )
+
+        for calendar_cell in calendar_cells:
+            try:
+                is_available = self.is_calendar_cell_available(calendar_cell)
+
+                if not is_available:
+                    continue
+
+                day = int(calendar_cell.find_element(By.CSS_SELECTOR, ".date").text.strip())
+                available_days.append(day)
+
+            except NoSuchElementException:
+                continue
+
+        return available_days
 
     def is_calendar_cell_available(self, calendar_cell: WebElement) -> bool:
         """
