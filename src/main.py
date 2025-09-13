@@ -9,8 +9,6 @@ from notifiers.factory import NotifierFactory
 from repositories.factory import RepositoryFactory
 from webdriver import Kaitabi20sIzumoWebDriver
 
-notification_history_file_path = Path("notification.json")
-
 
 def main(notify_when_unavailable: bool):
     configure_logger()
@@ -19,6 +17,10 @@ def main(notify_when_unavailable: bool):
 
     try:
         notification_repository = RepositoryFactory.create_notification_history_repository()
+
+        parent_dir = Path(__file__).parent
+        notification_history_file_path = parent_dir / "notification.json"
+
         notification_history = notification_repository.load(notification_history_file_path)
         notification_history.remove_expired_logs()
     except FileNotFoundError:
