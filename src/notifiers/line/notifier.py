@@ -1,8 +1,9 @@
 import os
+from datetime import date
 
 import requests
 
-from notifiers.notifier import Notifier
+from notifiers.interfaces.notifier import Notifier
 
 
 class LINENotifier(Notifier):
@@ -28,3 +29,6 @@ class LINENotifier(Notifier):
         )
 
         response.raise_for_status()
+
+    def notify_available_dates(self, available_dates: list[date]):
+        raise NotImplementedError
