@@ -18,6 +18,6 @@ class NotificationHistoryRepository(ABC):
         pass
 
     @abstractmethod
-    def save(self, file_path: Path) -> None:
+    def save(self, file_path: Path, history: NotificationHistory) -> None:
         """通知履歴を保存する"""
         pass
