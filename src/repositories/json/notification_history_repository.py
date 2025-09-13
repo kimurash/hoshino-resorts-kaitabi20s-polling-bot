@@ -14,10 +14,13 @@ class JSONNotificationHistoryRepository(NotificationHistoryRepository):
 
     def load(self, file_path: Path) -> NotificationHistory:
         """
-        履歴ファイルから通知済み日付を読み出す
+        履歴ファイルから通知履歴を読み出す
+
+        Args:
+            file_path: ファイルパス
 
         Returns:
-            set[date]: 通知済み日付の集合
+            NotificationHistory: 通知履歴
         """
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
@@ -31,6 +34,10 @@ class JSONNotificationHistoryRepository(NotificationHistoryRepository):
     def save(self, file_path: Path, history: NotificationHistory) -> None:
         """
         ファイルに通知履歴を保存する
+
+        Args:
+            file_path: ファイルパス
+            history: 通知履歴
         """
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
