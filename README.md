@@ -1,6 +1,6 @@
 # hoshino-resorts-kaitabi20s-polling
 
-[界タビ20s](https://hoshinoresorts.com/jp/sp/kaitabi20s/) の出雲の予約サイトをポーリングして予約可能な日程を LINE に通知するプログラム
+[界タビ20s](https://hoshinoresorts.com/jp/sp/kaitabi20s/) の出雲の予約サイトをポーリングして予約可能な日程を通知するプログラム
 
 ## 環境構築
 
@@ -26,6 +26,12 @@ cp src/.env.sample src/.env
 | SLACK_WEBHOOK_URL          | Slack に通知するための Webhook URL     | 
 
 `LINE_CHANNEL_ACCESS_TOKEN` の値は [shunsei](https://github.com/kimurash) からもらってください。
+
+`src` 直下に以下の内容で `notification.json` を作成する。
+
+```json
+[]
+```
 
 ## Windows での定期実行
 
