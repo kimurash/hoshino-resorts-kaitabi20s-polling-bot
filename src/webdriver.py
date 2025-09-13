@@ -26,15 +26,15 @@ class Kaitabi20sIzumoWebDriver:
     FULL_SYMBOL = "×"  # 満席
     CLOSED_SYMBOL = "ー"  # 閉館
 
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = True):
         self.driver = self.create_driver(headless)
 
-    def create_driver(self, headless: bool = False):
+    def create_driver(self, headless: bool = True):
         """
         Chrome の WebDriver を作成する
 
         Args:
-            headless (bool, optional): ヘッドレスモードかどうか. Default は False.
+            headless (bool, optional): ヘッドレスモードかどうか. Default は True.
 
         Returns:
             webdriver.Chrome: Chrome の WebDriver
