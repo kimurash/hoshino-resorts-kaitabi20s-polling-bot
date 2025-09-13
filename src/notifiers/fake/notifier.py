@@ -1,7 +1,9 @@
 from datetime import date
 
+from notifiers.interfaces.notifier import Notifier
 
-class FakeNotifier:
+
+class FakeNotifier(Notifier):
     def notify(self, message: str):
         print(message)
 
