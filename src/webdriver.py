@@ -18,22 +18,23 @@ class Kaitabi20sIzumoWebDriver:
         "https://hoshinoresorts.com/JA/hotels/0000000132/plans/0000000053"  # 界 出雲の予約ページ
     )
 
-    PAGE_LOAD_TIMEOUT = 30
-    IMPLICITLY_WAIT = 30
+    PAGE_LOAD_TIMEOUT = 20
+    IMPLICITLY_WAIT = 20
     VISIT_MAX_RETRY = 3
 
+    FEW_REMAINING_SYMBOL = "▲"  # 残りわずか
     FULL_SYMBOL = "×"  # 満席
     CLOSED_SYMBOL = "ー"  # 閉館
 
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = True):
         self.driver = self.create_driver(headless)
 
-    def create_driver(self, headless: bool = False):
+    def create_driver(self, headless: bool = True):
         """
         Chrome の WebDriver を作成する
 
         Args:
-            headless (bool, optional): ヘッドレスモードかどうか. Default は False.
+            headless (bool, optional): ヘッドレスモードかどうか. Default は True.
 
         Returns:
             webdriver.Chrome: Chrome の WebDriver
@@ -42,15 +43,17 @@ class Kaitabi20sIzumoWebDriver:
 
         if headless:
             options.add_argument("--headless")
+            options.add_argument("--window-size=1920,1080")
 
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-plugins")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
         options.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
         )
+
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
 
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
@@ -150,15 +153,23 @@ class Kaitabi20sIzumoWebDriver:
         Returns:
             bool: 予約可能かどうか
         """
-        symbol = calendar_cell.find_element(By.CSS_SELECTOR, ".calender-cell > span").text.strip()
+        # 空きありの場合をチェック
+        try:
+            # fmt: off
+            calendar_cell.find_element(By.CSS_SELECTOR, ".circle")  # FIXME: クラス名は予想
+            # fmt: on
+            return True
+        except NoSuchElementException:
+            pass
 
-        if symbol == self.FULL_SYMBOL:
-            return False
+        # 残りわずかの場合をチェック
+        try:
+            calendar_cell.find_element(By.CSS_SELECTOR, ".triangle")
+            return True
+        except NoSuchElementException:
+            pass
 
-        if symbol == self.CLOSED_SYMBOL:
-            return False
-
-        return True
+        return False
 
     def click_next_month_button(self):
         """
