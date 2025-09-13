@@ -17,9 +17,13 @@ def main(notify_when_unavailable: bool):
 
     notifier = NotifierFactory.create_notifier()
 
-    notification_repository = RepositoryFactory.create_notification_history_repository()
-    notification_history = notification_repository.load(notification_history_file_path)
-    notification_history.remove_expired_logs()
+    try:
+        notification_repository = RepositoryFactory.create_notification_history_repository()
+        notification_history = notification_repository.load(notification_history_file_path)
+        notification_history.remove_expired_logs()
+    except FileNotFoundError:
+        notifier.notify("通知履歴が見つかりませんでした")
+        return
 
     try:
         webdriver = Kaitabi20sIzumoWebDriver(headless=True)
