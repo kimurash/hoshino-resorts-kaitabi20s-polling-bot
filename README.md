@@ -1,4 +1,4 @@
-# hoshino-resorts-kaitabi20s-polling
+# hoshino-resorts-kaitabi20s-polling-bot
 
 [界タビ20s](https://hoshinoresorts.com/jp/sp/kaitabi20s/) の出雲の予約サイトをポーリングして予約可能な日程を通知するプログラム
 
